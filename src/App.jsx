@@ -70,7 +70,7 @@ export default function App() {
       const c = getAudioContext(); const o1 = c.createOscillator(); const o2 = c.createOscillator(); const g = c.createGain();
       o1.type = 'sawtooth'; o1.frequency.setValueAtTime(120, c.currentTime); o1.frequency.exponentialRampToValueAtTime(800, c.currentTime + 0.6);
       o2.type = 'sine'; o2.frequency.setValueAtTime(180, c.currentTime); o2.frequency.exponentialRampToValueAtTime(1200, c.currentTime + 0.6);
-      g.gain.setValueAtTime(0.06, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.6);
+      g.gain.setValueAtTime(0.06 * volume, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001 * volume, c.currentTime + 0.6);
       o1.connect(g); o2.connect(g); g.connect(c.destination); o1.start(); o2.start(); o1.stop(c.currentTime + 0.6); o2.stop(c.currentTime + 0.6);
       addLog("AUDIO: Startup chime.");
     } catch (e) {}
@@ -78,7 +78,7 @@ export default function App() {
   const startScanSound = () => {
     try {
       const c = getAudioContext(); scanOscRef.current = c.createOscillator(); scanGainRef.current = c.createGain();
-      scanOscRef.current.type = 'sawtooth'; scanOscRef.current.frequency.setValueAtTime(80, c.currentTime); scanGainRef.current.gain.setValueAtTime(0.03, c.currentTime);
+      scanOscRef.current.type = 'sawtooth'; scanOscRef.current.frequency.setValueAtTime(80, c.currentTime); scanGainRef.current.gain.setValueAtTime(0.03 * volume, c.currentTime);
       scanOscRef.current.connect(scanGainRef.current); scanGainRef.current.connect(c.destination); scanOscRef.current.start();
       scanIntervalRef.current = setInterval(() => { if (scanOscRef.current) { scanOscRef.current.frequency.setValueAtTime(700, c.currentTime); scanOscRef.current.frequency.exponentialRampToValueAtTime(90, c.currentTime + 0.12); } }, 150);
     } catch (e) {}
@@ -93,8 +93,8 @@ export default function App() {
       const c = getAudioContext();
       [349.23, 440, 523.25, 698.46].forEach((f, i) => {
         const o = c.createOscillator(); const g = c.createGain(); o.type = 'sine';
-        o.frequency.setValueAtTime(f, c.currentTime + i * 0.08); g.gain.setValueAtTime(0.05, c.currentTime + i * 0.08);
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + i * 0.08 + 0.3);
+        o.frequency.setValueAtTime(f, c.currentTime + i * 0.08); g.gain.setValueAtTime(0.05 * volume, c.currentTime + i * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.001 * volume, c.currentTime + i * 0.08 + 0.3);
         o.connect(g); g.connect(c.destination); o.start(c.currentTime + i * 0.08); o.stop(c.currentTime + i * 0.08 + 0.35);
       });
     } catch (e) {}
@@ -103,7 +103,7 @@ export default function App() {
     try {
       const c = getAudioContext(); const o = c.createOscillator(); const g = c.createGain(); o.type = 'square';
       o.frequency.setValueAtTime(100, c.currentTime); for (let i = 0; i < 8; i++) o.frequency.setValueAtTime(Math.random() * 600 + 80, c.currentTime + i * 0.05);
-      g.gain.setValueAtTime(0.08, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.4);
+      g.gain.setValueAtTime(0.08 * volume, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001 * volume, c.currentTime + 0.4);
       o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.4);
     } catch (e) {}
   };
@@ -112,7 +112,7 @@ export default function App() {
       const c = getAudioContext(); droneOscRef.current = c.createOscillator(); droneGainRef.current = c.createGain();
       droneOscRef.current.type = 'sawtooth'; droneOscRef.current.frequency.setValueAtTime(75, c.currentTime);
       const bpf = c.createBiquadFilter(); bpf.type = 'bandpass'; bpf.frequency.setValueAtTime(140, c.currentTime); bpf.Q.setValueAtTime(3, c.currentTime);
-      droneGainRef.current.gain.setValueAtTime(0.012, c.currentTime);
+      droneGainRef.current.gain.setValueAtTime(0.012 * volume, c.currentTime);
       droneOscRef.current.connect(bpf); bpf.connect(droneGainRef.current); droneGainRef.current.connect(c.destination); droneOscRef.current.start();
     } catch (e) {}
   };
@@ -466,6 +466,10 @@ export default function App() {
             <select className="select-control" value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)}>
               {voices.map((v, i) => <option key={i} value={v.name}>{v.name} ({v.lang})</option>)}
             </select>
+          </div>
+          <div className="input-group" style={{ marginBottom: '12px' }}>
+            <label className="input-label">VOLUME: {Math.round(volume * 100)}%</label>
+            <input type="range" min="0" max="1" step="0.05" className="range-slider" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} />
           </div>
           <div className="settings-grid">
             <div className="input-group">
