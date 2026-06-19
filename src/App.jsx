@@ -387,7 +387,7 @@ export default function App() {
   return (
     <div className={`app-container ${theme}`}>
       {/* Floating HUD controls (nearly invisible, hover to reveal) */}
-      <div className="floating-btn-group">
+       <div className={`floating-btn-group ${directorMode ? 'panel-open' : ''}`}>
         <button className="hud-btn"
           onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
           title="Toggle Light/Dark [L]"
