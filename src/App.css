@@ -213,7 +213,8 @@ body {
   position: absolute;
   top: 0;
   right: 0;
-  width: 420px;
+  width: 100%;
+  max-width: 420px;
   background: var(--panel-bg);
   border-left: 1px solid var(--glass-border);
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
@@ -229,7 +230,7 @@ body {
 }
 
 .control-panel.hidden {
-  transform: translateX(420px);
+  transform: translateX(100%);
 }
 
 .panel-header {
@@ -491,4 +492,34 @@ body {
 }
 .app-container.light .hotkey-key {
   background: rgba(0, 0, 0, 0.08);
+}
+
+/* Mobile Responsiveness Rules */
+@media (max-width: 600px) {
+  .control-panel {
+    max-width: 100%; /* Take full screen width on mobile */
+    border-left: none;
+  }
+  
+  .panel-header {
+    padding: 15px;
+  }
+  
+  .panel-section {
+    padding: 12px 15px;
+  }
+
+  .floating-btn-group {
+    top: 15px;
+    right: 15px;
+  }
+
+  .floating-btn-group.panel-open {
+    display: none; /* Hide when panel is open on mobile */
+  }
+
+  .telemetry-overlay {
+    top: 15px;
+    left: 15px;
+  }
 }

@@ -46,7 +46,9 @@ export default function App() {
     const loadVoices = () => {
       const v = window.speechSynthesis.getVoices();
       setVoices(v);
-      const def = v.find(x => x.name.includes("Google") || x.name.includes("David") || x.lang === "en-US");
+      // Prioritize Microsoft David (case-insensitive check), then fall back to standard en-US voices
+      const david = v.find(x => x.name.toLowerCase().includes("david"));
+      const def = david || v.find(x => x.name.includes("Google") || x.lang === "en-US" || x.lang.startsWith("en"));
       if (def) setSelectedVoice(def.name);
       else if (v.length > 0) setSelectedVoice(v[0].name);
     };
