@@ -254,7 +254,7 @@ export default function App() {
 
           {/* ───── FLOATING ROBOT SCENE (everything moves together) ───── */}
           <div className="robot-scene">
-            <video className="faceplate-img" src="/vid.mp4" autoPlay loop muted playsInline style={{ opacity: 1, zIndex: 1 }} />
+            <video key={theme} className="faceplate-img" src={theme === "dark" ? "/vid.mp4" : "/vid-1.mp4"} autoPlay loop muted playsInline style={{ opacity: 1, zIndex: 1 }} />
 
             {/* Floating HUD Rings */}
             <svg className="hud-layer" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet">

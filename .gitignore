@@ -26,6 +26,8 @@ dist-ssr
 # User-specific assets (do not commit/push)
 public/new-robot.png
 /vid.mp4
+/vid 1.mp4
+
 
 
 
