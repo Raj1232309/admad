@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# User-specific assets (do not commit/push)
+public/new-robot.png
+vid.mp4
+public/vid.mp4
+
+

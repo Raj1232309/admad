@@ -26,23 +26,27 @@ const getAudioContext = () => {
 };
 
 // Particles (only generated on the sides, leaving the center face column 38% - 62% clear)
-const PARTICLES = Array.from({ length: 40 }, (_, i) => {
+const PARTICLES = Array.from({ length: 65 }, (_, i) => {
   const side = Math.random() < 0.5 ? 'left' : 'right';
   const x = side === 'left' ? Math.random() * 38 : 62 + Math.random() * 38;
   return {
     id: i, x, y: Math.random() * 100,
-    size: 1.5 + Math.random() * 2.5, dur: 10 + Math.random() * 14,
+    size: 1.2 + Math.random() * 2.8, dur: 8 + Math.random() * 12,
     delay: Math.random() * -20, drift: (side === 'left' ? -1 : 1) * (15 + Math.random() * 35),
   };
 });
 
 // Orbiting dots
-const ORBIT_DOTS = Array.from({ length: 8 }, (_, i) => ({
-  id: i, radius: 28 + (i % 3) * 6, speed: 12 + i * 3, delay: i * -2, size: 2 + (i % 3),
+const ORBIT_DOTS = Array.from({ length: 24 }, (_, i) => ({
+  id: i,
+  radius: 20 + (i % 8) * 4.5,
+  speed: 8 + (i % 6) * 4,
+  delay: i * -1.5,
+  size: 1.5 + (i % 4) * 0.8,
 }));
 
 // Energy pulse rings
-const PULSE_RINGS = [0, 1, 2];
+const PULSE_RINGS = [0, 1.8, 3.6, 5.4, 7.2];
 
 export default function App() {
   const [status, setStatus] = useState("idle");
@@ -250,11 +254,43 @@ export default function App() {
 
           {/* ───── FLOATING ROBOT SCENE (everything moves together) ───── */}
           <div className="robot-scene">
-            <img className="faceplate-img dark-face" src="/robot-dark.jpg" alt="" />
-            <img className="faceplate-img light-face" src="/robot-light.jpg" alt="" />
+            <video className="faceplate-img" src="/vid.mp4" autoPlay loop muted playsInline style={{ opacity: 1, zIndex: 1 }} />
 
             {/* Floating HUD Rings */}
             <svg className="hud-layer" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet">
+              {/* Outer grid cross lines */}
+              <line x1="800" y1="50" x2="800" y2="850" stroke="var(--neon-cyan)" strokeWidth="0.5" opacity="0.08" strokeDasharray="5 5" />
+              <line x1="200" y1="450" x2="1400" y2="450" stroke="var(--neon-cyan)" strokeWidth="0.5" opacity="0.08" strokeDasharray="5 5" />
+
+              {/* Diagonal crosshairs */}
+              <line x1="400" y1="100" x2="1200" y2="800" stroke="var(--neon-cyan)" strokeWidth="0.3" opacity="0.04" strokeDasharray="10 10" />
+              <line x1="400" y1="800" x2="1200" y2="100" stroke="var(--neon-cyan)" strokeWidth="0.3" opacity="0.04" strokeDasharray="10 10" />
+
+              {/* Corner Brackets */}
+              <g className="bracket-pulse" stroke="var(--neon-cyan)" strokeWidth="1.5" fill="none" opacity="0.3">
+                {/* Top-Left */}
+                <path d="M 580 230 L 550 230 L 550 260" />
+                {/* Top-Right */}
+                <path d="M 1020 230 L 1050 230 L 1050 260" />
+                {/* Bottom-Left */}
+                <path d="M 580 670 L 550 670 L 550 640" />
+                {/* Bottom-Right */}
+                <path d="M 1020 670 L 1050 670 L 1050 640" />
+              </g>
+
+              {/* Inner Brackets */}
+              <g className="corner-pulse" stroke="var(--neon-pink)" strokeWidth="1.2" fill="none" opacity="0.25">
+                {/* Top-Left */}
+                <path d="M 640 280 L 620 280 L 620 300" />
+                {/* Top-Right */}
+                <path d="M 960 280 L 980 280 L 980 300" />
+                {/* Bottom-Left */}
+                <path d="M 640 620 L 620 620 L 620 600" />
+                {/* Bottom-Right */}
+                <path d="M 960 620 L 980 620 L 980 600" />
+              </g>
+
+              {/* Rotating circles and details */}
               <g className="hud-spin-cw" opacity="0.12">
                 <circle cx="800" cy="450" r="450" stroke="var(--neon-cyan)" strokeWidth="1" fill="none" strokeDasharray="10 30 50 30" />
                 <circle cx="800" cy="450" r="440" stroke="var(--neon-cyan)" strokeWidth="0.7" fill="none" strokeDasharray="3 5" />
@@ -274,6 +310,13 @@ export default function App() {
               <g className="hud-spin-cw" opacity="0.25" style={{ animationDuration: '45s' }}>
                 <circle cx="800" cy="450" r="375" stroke="var(--neon-cyan)" strokeWidth="2.5" fill="none" strokeDasharray="0 18" strokeLinecap="round" />
               </g>
+              {/* Fast-spinning inner dashboard details */}
+              <g className="hud-spin-ccw" opacity="0.3" style={{ animationDuration: '15s' }}>
+                <circle cx="800" cy="450" r="320" stroke="var(--neon-green)" strokeWidth="1" fill="none" strokeDasharray="40 180 10 40" />
+                <circle cx="800" cy="450" r="310" stroke="var(--neon-green)" strokeWidth="0.5" fill="none" strokeDasharray="4 8" />
+              </g>
+
+
               <g className="hud-spin-slow" opacity="0.12">
                 <circle cx="800" cy="450" r="350" stroke="var(--neon-cyan)" strokeWidth="0.7" fill="none" strokeDasharray="180 30" />
               </g>
