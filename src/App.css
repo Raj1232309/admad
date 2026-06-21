@@ -110,8 +110,8 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   object-fit: contain; pointer-events: none;
   transition: opacity 0.8s;
-  mask-image: radial-gradient(ellipse 55% 62% at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 84%);
-  -webkit-mask-image: radial-gradient(ellipse 55% 62% at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 84%);
+  mask-image: radial-gradient(ellipse 55% 65% at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 82%);
+  -webkit-mask-image: radial-gradient(ellipse 55% 65% at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 82%);
 }
 .faceplate-img.dark-face { opacity: 1; z-index: 1; }
 .faceplate-img.light-face { opacity: 0; z-index: 1; }
