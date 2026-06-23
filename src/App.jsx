@@ -1,21 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 
-const SCRIPT_STEPS = [
-  { id: 1, target: "Boss", name: "The Pitch Test",
-    text: "Thoughts detected: I wonder if I can fire this guy and replace him with a cheaper intern? Also, I left my stove on." },
-  { id: 2, target: "Suspect", name: "Interrogation A",
-    text: "Thoughts detected: He doesn't know. He doesn't know I buried the cake wrappers in the backyard. The child cried, but the chocolate was worth it. I am a monster." },
-  { id: 3, target: "Suspect", name: "Interrogation B",
-    text: "Thoughts detected: I have spent 48 hours straight watching reels of cats dancing to Bollywood music." },
-  { id: 4, target: "Employee 1", name: "Corporate 1",
-    text: "Thoughts detected: If the manager talks about corporate synergy one more time, I am going to put salt in his green tea." },
-  { id: 5, target: "Employee 2", name: "Corporate 2",
-    text: "Thoughts detected: Why does his hair look like a birds nest? Is that a toupee? I want to pull it." },
-  { id: 6, target: "Employee 3", name: "Corporate 3",
-    text: "Thoughts detected: I am only standing here so I get free samosas at evening tea. The manager's presentation yesterday was so boring I legally aged three years." },
-  { id: 7, target: "Judges", name: "Scan Judges",
-    text: "Thoughts detected: This Ad Mad presentation is absolutely brilliant! We must give this team the first prize!" }
+const DEFAULT_SCANS = [
+  { id: "1", target: "Boss", name: "The Pitch Test", key: "1", text: "Thoughts detected: I wonder if I can fire this guy and replace him with a cheaper intern? Also, I left my stove on." },
+  { id: "2", target: "Student 1", name: "Scene 1", key: "2", text: "Thoughts detected: You believe he assigns homework purely to ruin your weekends and you feel he puts on his glasses just for an intimidating look." },
+  { id: "3", target: "Student 2", name: "Scene 1 (Friend)", key: "3", text: "Thoughts detected: Excessive jealousy detected. You checked Rohan's marks 6 times. You also compared your project with him 14 times. Recommendation: focus on your own growth." },
+  { id: "4", target: "Gupta", name: "The Cake Mystery", key: "4", text: "Thoughts detected: He doesn't know. He doesn't know I buried the cake wrappers in the backyard. The child cried, but the chocolate was worth it. I am a monster." },
+  { id: "5", target: "Employee 1", name: "Corporate Trial 1", key: "5", text: "Thoughts detected: If the manager talks about corporate synergy one more time, I am going to put salt in his green tea." },
+  { id: "6", target: "Employee 2", name: "Corporate Trial 2", key: "6", text: "Thoughts detected: Why does his hair look like a birds’ nest? Is that a toupee? I want to pull it." },
+  { id: "7", target: "Employee 3", name: "Corporate Trial 3", key: "7", text: "Thoughts detected: I am only standing here so I get free samosas at evening tea. The manager's presentation yesterday was so boring I legally aged three years." },
+  { id: "8", target: "App", name: "Conclusion", key: "8", text: "Because truth hurts" },
+  { id: "9", target: "Judges", name: "Scan Judges", key: "9", text: "Thoughts detected: This Ad Mad presentation is absolutely brilliant! We must give this team the first prize!" }
 ];
 
 let audioCtx = null;
@@ -62,18 +57,20 @@ export default function App() {
   const [customTarget, setCustomTarget] = useState("");
   const [customThoughts, setCustomThoughts] = useState("");
   const [customTheme, setCustomTheme] = useState("dark");
-  const [logs, setLogs] = useState(["SYS: ONLINE.", "KEYS 1-7 READY."]);
-  const [customScans, setCustomScans] = useState(() => {
+  const [logs, setLogs] = useState(["SYS: ONLINE.", "CHANNELS ONLINE."]);
+  const [scans, setScans] = useState(() => {
     try {
-      const saved = localStorage.getItem("customScans");
-      return saved ? JSON.parse(saved) : [];
+      const saved = localStorage.getItem("admadScans");
+      return saved ? JSON.parse(saved) : DEFAULT_SCANS;
     } catch (e) {
-      return [];
+      return DEFAULT_SCANS;
     }
   });
   const [newTarget, setNewTarget] = useState("");
+  const [newName, setNewName] = useState("");
   const [newThoughts, setNewThoughts] = useState("");
   const [newKey, setNewKey] = useState("");
+  const [editingScanId, setEditingScanId] = useState(null);
 
   const mouthCanvasRef = useRef(null);
   const mouthAnimRef = useRef(null);
@@ -98,10 +95,10 @@ export default function App() {
 
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
 
-  // Custom scans local storage sync
+  // Scans local storage sync
   useEffect(() => {
-    localStorage.setItem("customScans", JSON.stringify(customScans));
-  }, [customScans]);
+    localStorage.setItem("admadScans", JSON.stringify(scans));
+  }, [scans]);
 
 
 
@@ -184,11 +181,11 @@ export default function App() {
       if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
       const k = e.key.toLowerCase();
 
-      // Check custom scans first
-      const matchedCustom = customScans.find(cs => cs.key === k);
-      if (matchedCustom) {
+      // Check scans dynamically by hotkey
+      const matchedScan = scans.find(s => s.key === k);
+      if (matchedScan) {
         e.preventDefault();
-        scan(matchedCustom.id, matchedCustom.target, matchedCustom.text);
+        scan(matchedScan.id, matchedScan.target, matchedScan.text);
         return;
       }
 
@@ -199,47 +196,109 @@ export default function App() {
       else if (k === ' ') { 
         e.preventDefault(); 
         if (activeStep) { 
-          const s = SCRIPT_STEPS.find(x => x.id === activeStep) || customScans.find(x => x.id === activeStep); 
+          const s = scans.find(x => x.id === activeStep); 
           if (s) scan(s.id, s.target, s.text); 
         } 
       }
-      else if (['1','2','3','4','5','6','7'].includes(k)) { const s = SCRIPT_STEPS[parseInt(k) - 1]; if (s) scan(s.id, s.target, s.text); }
     };
     window.addEventListener('keydown', kd); return () => window.removeEventListener('keydown', kd);
-  }, [activeStep, selectedVoice, rate, pitch, volume, customScans]);
+  }, [activeStep, selectedVoice, rate, pitch, volume, scans]);
 
-  const addCustomScan = (e) => {
+  const addOrUpdateScan = (e) => {
     e.preventDefault();
     if (!newTarget || !newThoughts || !newKey) { addLog("ERR: Blank."); glitch(); return; }
     const keyLower = newKey.toLowerCase();
     
-    // Check key collision
-    const defaultKeys = ['1','2','3','4','5','6','7','l','d','s','0','f',' '];
-    if (defaultKeys.includes(keyLower)) {
-      addLog(`WARN: Overriding default hotkey [${keyLower.toUpperCase()}]`);
+    // Check key collision with system controls
+    const systemKeys = ['d', 'l', 's', '0', 'f', ' '];
+    if (systemKeys.includes(keyLower)) {
+      addLog(`ERR: Key [${keyLower.toUpperCase()}] is reserved for player controls.`);
+      glitch();
+      return;
     }
 
-    const newScan = {
-      id: Date.now(),
-      target: newTarget,
-      text: `Thoughts detected: ${newThoughts}`,
-      key: keyLower
-    };
+    if (editingScanId !== null) {
+      // Update existing scan
+      setScans(prev => prev.map(s => {
+        if (s.id === editingScanId) {
+          return {
+            ...s,
+            target: newTarget,
+            name: newName || s.name || `Scan ${newTarget}`,
+            key: keyLower,
+            text: newThoughts
+          };
+        }
+        return s;
+      }));
+      addLog(`UPDATED: [${newTarget.toUpperCase()}] on key [${keyLower.toUpperCase()}]`);
+      beep();
+      cancelEditing();
+    } else {
+      // Add new scan
+      const keyCollision = scans.some(s => s.key === keyLower);
+      if (keyCollision) {
+        addLog(`WARN: Key [${keyLower.toUpperCase()}] already assigned to another scan.`);
+      }
 
-    setCustomScans(prev => [...prev, newScan]);
-    addLog(`ADDED: [${newTarget.toUpperCase()}] on key [${keyLower.toUpperCase()}]`);
-    beep();
+      // Prepend "Thoughts detected: " if not already present
+      const finalThoughts = newThoughts.startsWith("Thoughts detected:") 
+        ? newThoughts 
+        : `Thoughts detected: ${newThoughts}`;
 
-    setNewTarget("");
-    setNewThoughts("");
-    setNewKey("");
+      const newScan = {
+        id: String(Date.now()),
+        target: newTarget,
+        name: newName || `Scan ${newTarget}`,
+        text: finalThoughts,
+        key: keyLower
+      };
+
+      setScans(prev => [...prev, newScan]);
+      addLog(`ADDED: [${newTarget.toUpperCase()}] on key [${keyLower.toUpperCase()}]`);
+      beep();
+      clearForm();
+    }
   };
 
-  const removeCustomScan = (id) => {
-    const item = customScans.find(x => x.id === id);
-    setCustomScans(prev => prev.filter(x => x.id !== id));
+  const startEditing = (s) => {
+    setEditingScanId(s.id);
+    setNewTarget(s.target);
+    setNewName(s.name || "");
+    setNewKey(s.key);
+    setNewThoughts(s.text);
+  };
+
+  const cancelEditing = () => {
+    setEditingScanId(null);
+    clearForm();
+  };
+
+  const clearForm = () => {
+    setNewTarget("");
+    setNewName("");
+    setNewKey("");
+    setNewThoughts("");
+  };
+
+  const deleteScan = (id) => {
+    const item = scans.find(x => x.id === id);
+    setScans(prev => prev.filter(x => x.id !== id));
     if (item) addLog(`REMOVED: [${item.target.toUpperCase()}]`);
     beep();
+    if (editingScanId === id) {
+      cancelEditing();
+    }
+  };
+
+  const resetToDefaults = () => {
+    if (window.confirm("Are you sure you want to reset all scans to default? Your custom changes will be lost.")) {
+      setScans(DEFAULT_SCANS);
+      localStorage.removeItem("admadScans");
+      addLog("RESET TO DEFAULTS.");
+      beep();
+      cancelEditing();
+    }
   };
 
   return (
@@ -382,54 +441,48 @@ export default function App() {
       {/* Control Panel */}
       <div className={`control-panel ${!directorMode ? 'hidden' : ''}`}>
         <div className="panel-header"><div className="panel-title"><span>OPERATOR</span><button className="prop-toggle-btn" onClick={() => setDirectorMode(false)}>HIDE [D]</button></div></div>
+        
+        {/* Active Scan Channels Section */}
         <div className="panel-section">
-          <h3 className="section-title">CHANNELS (1-7)</h3>
-          <div className="script-grid">
-            {SCRIPT_STEPS.map(s => (
-              <button key={s.id} className={`script-btn ${activeStep === s.id ? 'active-step' : ''}`} onClick={() => scan(s.id, s.target, s.text)}>
-                <div className="btn-meta">KEY {s.id} — {s.target}</div>
-                <div className="btn-text">{s.name}</div>
-                <div className="btn-thought">{s.text}</div>
-              </button>
-            ))}
+          <div className="section-header-row">
+            <h3 className="section-title" style={{ margin: 0 }}>SCANS & CHANNELS</h3>
+            <button type="button" className="reset-btn" onClick={resetToDefaults}>RESET DEFAULTS</button>
           </div>
-        </div>
-        <div className="panel-section">
-          <h3 className="section-title">CUSTOM SCANS</h3>
-          
-          {/* Custom scans list */}
-          <div className="custom-scans-list" style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12, maxHeight: 180, overflowY: 'auto' }}>
-            {customScans.length === 0 ? (
-              <div style={{ fontStyle: 'italic', fontSize: 11, color: '#64748b', textAlign: 'center', padding: '10px 0' }}>No custom scans added yet.</div>
+          <div className="script-grid" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '4px', marginTop: '8px' }}>
+            {scans.length === 0 ? (
+              <div style={{ fontStyle: 'italic', fontSize: 11, color: '#64748b', textAlign: 'center', padding: '10px 0' }}>No scans available. Click Reset or add a new one.</div>
             ) : (
-              customScans.map(cs => (
-                <div key={cs.id} className="custom-scan-item" style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: 'rgba(10,15,30,0.4)', border: '1px solid var(--border)',
-                  borderRadius: 4, padding: '6px 8px', fontSize: 11
-                }}>
-                  <div style={{ flex: 1, minWidth: 0, marginRight: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ color: 'var(--neon-green)', fontWeight: 'bold', fontFamily: 'var(--mono)' }}>[{cs.key.toUpperCase()}]</span>
-                      <span style={{ fontWeight: 'bold' }}>{cs.target}</span>
+              scans.map(s => (
+                <div key={s.id} className={`script-btn-container ${activeStep === s.id ? 'active-step' : ''}`}>
+                  <div className="script-btn-content" onClick={() => scan(s.id, s.target, s.text)}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                      <span className="btn-meta">KEY {s.key.toUpperCase()} — {s.target}</span>
+                      <span style={{ fontSize: 9, color: 'var(--neon-cyan)', fontWeight: 'bold', fontFamily: 'var(--mono)' }}>{s.name}</span>
                     </div>
-                    <div style={{ color: '#64748b', fontStyle: 'italic', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{cs.text.replace("Thoughts detected: ", "")}</div>
+                    <div className="btn-thought">{s.text}</div>
                   </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <button type="button" className="prop-toggle-btn" style={{ borderColor: 'var(--neon-cyan)', color: 'var(--neon-cyan)', padding: '2px 5px' }} onClick={() => scan(cs.id, cs.target, cs.text)}>⚡</button>
-                    <button type="button" className="prop-toggle-btn" style={{ borderColor: 'var(--neon-pink)', color: 'var(--neon-pink)', padding: '2px 5px' }} onClick={() => removeCustomScan(cs.id)}>✕</button>
+                  <div className="script-btn-actions">
+                    <button type="button" className="prop-toggle-btn" style={{ borderColor: 'var(--neon-cyan)', color: 'var(--neon-cyan)', padding: '2px 5px' }} onClick={() => startEditing(s)} title="Edit Scan">✏️</button>
+                    <button type="button" className="prop-toggle-btn" style={{ borderColor: 'var(--neon-pink)', color: 'var(--neon-pink)', padding: '2px 5px' }} onClick={() => deleteScan(s.id)} title="Delete Scan">✕</button>
                   </div>
                 </div>
               ))
             )}
           </div>
+        </div>
 
-          {/* Add custom scan form */}
-          <form className="custom-scan-form" onSubmit={addCustomScan}>
-            <div className="settings-grid" style={{ gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+        {/* Add/Edit Scan Form */}
+        <div className="panel-section">
+          <h3 className="section-title">{editingScanId ? "EDIT SCAN CHANNEL" : "ADD SCAN CHANNEL"}</h3>
+          <form className="custom-scan-form" onSubmit={addOrUpdateScan}>
+            <div className="settings-grid" style={{ gridTemplateColumns: '1.2fr 1fr 0.8fr', gap: '6px' }}>
               <div className="input-group">
                 <label className="input-label">TARGET</label>
-                <input type="text" className="form-input" placeholder="e.g. Host" value={newTarget} onChange={e => setNewTarget(e.target.value)} required />
+                <input type="text" className="form-input" placeholder="e.g. Boss" value={newTarget} onChange={e => setNewTarget(e.target.value)} required />
+              </div>
+              <div className="input-group">
+                <label className="input-label">SCENE NAME</label>
+                <input type="text" className="form-input" placeholder="e.g. Scene 1" value={newName} onChange={e => setNewName(e.target.value)} />
               </div>
               <div className="input-group">
                 <label className="input-label">HOTKEY</label>
@@ -445,15 +498,30 @@ export default function App() {
                 />
               </div>
             </div>
-            <div className="input-group" style={{ marginTop: 6 }}>
-              <label className="input-label">THOUGHTS</label>
-              <input type="text" className="form-input" placeholder="Type secret thoughts..." value={newThoughts} onChange={e => setNewThoughts(e.target.value)} required />
+            <div className="input-group" style={{ marginTop: '6px' }}>
+              <label className="input-label">THOUGHTS TEXT</label>
+              <textarea 
+                className="form-input" 
+                placeholder="Type thoughts or spoken text..." 
+                value={newThoughts} 
+                onChange={e => setNewThoughts(e.target.value)} 
+                style={{ resize: 'vertical', minHeight: '44px', fontFamily: 'inherit' }}
+                required 
+              />
             </div>
-            <div className="action-row" style={{ marginTop: 8 }}>
-              <button type="submit" className="action-btn cyan">➕ ADD SCAN SLOT</button>
+            <div className="action-row" style={{ marginTop: '8px' }}>
+              {editingScanId ? (
+                <>
+                  <button type="submit" className="action-btn cyan">💾 SAVE CHANGES</button>
+                  <button type="button" className="action-btn pink" onClick={cancelEditing}>✕ CANCEL</button>
+                </>
+              ) : (
+                <button type="submit" className="action-btn cyan">➕ ADD SCAN CHANNEL</button>
+              )}
             </div>
           </form>
         </div>
+
         <div className="panel-section">
           <h3 className="section-title">TTS</h3>
           <div className="input-group" style={{ marginBottom: 10 }}><label className="input-label">VOICE</label><select className="select-control" value={selectedVoice} onChange={e => setSelectedVoice(e.target.value)}>{voices.map((v, i) => <option key={i} value={v.name}>{v.name} ({v.lang})</option>)}</select></div>
@@ -470,7 +538,8 @@ export default function App() {
         </div>
         <div className="panel-footer">
           <ul className="hotkey-list">
-            <li><span className="hotkey-key">1</span>–<span className="hotkey-key">7</span> Channels</li>
+            <li><span className="hotkey-key">1</span>–<span className="hotkey-key">9</span> Default Keys</li>
+            <li>Custom Scan Hotkeys Enabled</li>
             <li><span className="hotkey-key">L</span> Theme · <span className="hotkey-key">D</span> Panel</li>
             <li><span className="hotkey-key">S</span>/<span className="hotkey-key">0</span> Stop · <span className="hotkey-key">F</span> Fullscreen</li>
           </ul>
