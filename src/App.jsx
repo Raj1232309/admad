@@ -5,7 +5,6 @@ const DEFAULT_SCANS = [
   { id: "1", target: "Boss", name: "The Pitch Test", key: "1", text: "Thoughts detected: I wonder if I can fire this guy and replace him with a cheaper intern? Also, I left my stove on." },
   { id: "2", target: "Student 1", name: "Scene 1", key: "2", text: "Thoughts detected: You believe he assigns homework purely to ruin your weekends and you feel he puts on his glasses just for an intimidating look." },
   { id: "3", target: "Student 2", name: "Scene 1 (Friend)", key: "3", text: "Thoughts detected: Excessive jealousy detected. You checked Rohan's marks 6 times. You also compared your project with him 14 times. Recommendation: focus on your own growth." },
-  { id: "4", target: "Gupta", name: "The Cake Mystery", key: "4", text: "Thoughts detected: He doesn't know. He doesn't know I buried the cake wrappers in the backyard. The child cried, but the chocolate was worth it. I am a monster." },
   { id: "5", target: "Employee 1", name: "Corporate Trial 1", key: "5", text: "Thoughts detected: If the manager talks about corporate synergy one more time, I am going to put salt in his green tea." },
   { id: "6", target: "Employee 2", name: "Corporate Trial 2", key: "6", text: "Thoughts detected: Why does his hair look like a birds’ nest? Is that a toupee? I want to pull it." },
   { id: "7", target: "Employee 3", name: "Corporate Trial 3", key: "7", text: "Thoughts detected: I am only standing here so I get free samosas at evening tea. The manager's presentation yesterday was so boring I legally aged three years." },
@@ -61,9 +60,10 @@ export default function App() {
   const [scans, setScans] = useState(() => {
     try {
       const saved = localStorage.getItem("admadScans");
-      return saved ? JSON.parse(saved) : DEFAULT_SCANS;
+      const loaded = saved ? JSON.parse(saved) : DEFAULT_SCANS;
+      return loaded.filter(s => s.id !== "4" && s.key !== "4");
     } catch (e) {
-      return DEFAULT_SCANS;
+      return DEFAULT_SCANS.filter(s => s.id !== "4" && s.key !== "4");
     }
   });
   const [newTarget, setNewTarget] = useState("");
@@ -171,10 +171,18 @@ export default function App() {
 
   const scan = (id, target, text) => {
     window.speechSynthesis.cancel(); stopAll();
+    const scanItem = scans.find(s => s.id === id);
+    if (scanItem?.key === '4' || scanItem?.key === '8') {
+      setActiveStep(id);
+      speak(text);
+      return;
+    }
     setStatus("scanning"); setActiveStep(id);
-    startScan(); addLog(`SCAN: [${target.toUpperCase()}]`);
+    startScan();
+    addLog(`SCAN: [${target.toUpperCase()}]`);
     setTimeout(() => { stopScan(); beep(); setTimeout(() => speak(text), 500); }, 1500);
   };
+
 
   useEffect(() => {
     const kd = (e) => {
@@ -301,6 +309,9 @@ export default function App() {
     }
   };
 
+  const activeScan = scans.find(s => s.id === activeStep);
+  const showScanVisuals = status === 'scanning' && activeScan?.key !== '8';
+
   return (
     <div className={`app-container ${theme}`}>
       <button className="theme-toggle-btn" onClick={() => setTheme(p => p === 'dark' ? 'light' : 'dark')} title="[L]">
@@ -325,29 +336,7 @@ export default function App() {
               <line x1="400" y1="100" x2="1200" y2="800" stroke="var(--neon-cyan)" strokeWidth="0.3" opacity="0.04" strokeDasharray="10 10" />
               <line x1="400" y1="800" x2="1200" y2="100" stroke="var(--neon-cyan)" strokeWidth="0.3" opacity="0.04" strokeDasharray="10 10" />
 
-              {/* Corner Brackets */}
-              <g className="bracket-pulse" stroke="var(--neon-cyan)" strokeWidth="1.5" fill="none" opacity="0.3">
-                {/* Top-Left */}
-                <path d="M 580 230 L 550 230 L 550 260" />
-                {/* Top-Right */}
-                <path d="M 1020 230 L 1050 230 L 1050 260" />
-                {/* Bottom-Left */}
-                <path d="M 580 670 L 550 670 L 550 640" />
-                {/* Bottom-Right */}
-                <path d="M 1020 670 L 1050 670 L 1050 640" />
-              </g>
-
-              {/* Inner Brackets */}
-              <g className="corner-pulse" stroke="var(--neon-pink)" strokeWidth="1.2" fill="none" opacity="0.25">
-                {/* Top-Left */}
-                <path d="M 640 280 L 620 280 L 620 300" />
-                {/* Top-Right */}
-                <path d="M 960 280 L 980 280 L 980 300" />
-                {/* Bottom-Left */}
-                <path d="M 640 620 L 620 620 L 620 600" />
-                {/* Bottom-Right */}
-                <path d="M 960 620 L 980 620 L 980 600" />
-              </g>
+              {/* Corner Brackets and Inner Brackets removed */}
 
               {/* Rotating circles and details */}
               <g className="hud-spin-cw" opacity="0.12">
@@ -419,19 +408,18 @@ export default function App() {
             ))}
           </div>
 
-          {/* Scanning crosshair */}
-          <div className="crosshair" />
+          {/* Scanning crosshair removed */}
 
           {/* Red scanning overlay */}
-          <div className={`scan-red-overlay ${status === 'scanning' ? 'active' : ''}`} />
+          <div className={`scan-red-overlay ${showScanVisuals ? 'active' : ''}`} />
 
           {/* Laser sweep */}
-          <div className={`viewport-laser ${status === 'scanning' ? 'scanning' : ''}`} />
+          <div className={`viewport-laser ${showScanVisuals ? 'scanning' : ''}`} />
 
           {/* Plain subtitle */}
           {status === "speaking" && spokenText && (
             <div className="subtitle-plain">
-              <span className="subtitle-label-plain">THOUGHTS DECODED</span>
+              <span className="subtitle-label-plain">THOUGHTS DETECTED</span>
               {spokenText}
             </div>
           )}

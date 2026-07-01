@@ -90,17 +90,15 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   top: 50%; left: 50%;
   width: 100%; height: 100%;
   transform: translate(-50%, -50%) scale(0.88);
-  animation: robot-float 5s ease-in-out infinite;
+  animation: robot-float 6s ease-in-out infinite;
   transition: filter 0.1s;
+  will-change: transform;
 }
 
 /* Visible floating bob */
 @keyframes robot-float {
-  0%   { transform: translate(-50%, -50%) scale(0.88) translateY(0px); }
-  25%  { transform: translate(-50%, -50%) scale(0.88) translateY(-10px) rotate(0.2deg); }
-  50%  { transform: translate(-50%, -50%) scale(0.88) translateY(0px); }
-  75%  { transform: translate(-50%, -50%) scale(0.88) translateY(8px) rotate(-0.15deg); }
-  100% { transform: translate(-50%, -50%) scale(0.88) translateY(0px); }
+  0%, 100% { transform: translate(-50%, -50%) scale(0.88) translateY(-6px) rotate(-0.1deg); }
+  50% { transform: translate(-50%, -50%) scale(0.88) translateY(6px) rotate(0.1deg); }
 }
 
 
@@ -123,15 +121,15 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 2; pointer-events: none;
 }
-.hud-spin-cw  { transform-box: view-box; transform-origin: 800px 450px; animation: spin-cw 58s linear infinite; }
-.hud-spin-ccw { transform-box: view-box; transform-origin: 800px 450px; animation: spin-ccw 44s linear infinite; }
-.hud-spin-slow { transform-box: view-box; transform-origin: 800px 450px; animation: spin-cw 90s linear infinite; }
-.hud-spin-xslow { transform-box: view-box; transform-origin: 800px 450px; animation: spin-ccw 150s linear infinite; }
+.hud-spin-cw  { transform-box: view-box; transform-origin: 800px 450px; animation: spin-cw 58s linear infinite; will-change: transform; }
+.hud-spin-ccw { transform-box: view-box; transform-origin: 800px 450px; animation: spin-ccw 44s linear infinite; will-change: transform; }
+.hud-spin-slow { transform-box: view-box; transform-origin: 800px 450px; animation: spin-cw 90s linear infinite; will-change: transform; }
+.hud-spin-xslow { transform-box: view-box; transform-origin: 800px 450px; animation: spin-ccw 150s linear infinite; will-change: transform; }
 @keyframes spin-cw { to { transform: rotate(360deg); } }
 @keyframes spin-ccw { to { transform: rotate(-360deg); } }
 
-.bracket-pulse { animation: pulse-opacity 2.5s ease-in-out infinite; }
-.corner-pulse { animation: pulse-opacity 3s ease-in-out infinite 0.5s; }
+.bracket-pulse { animation: pulse-opacity 2.5s ease-in-out infinite; will-change: opacity; }
+.corner-pulse { animation: pulse-opacity 3s ease-in-out infinite 0.5s; will-change: opacity; }
 @keyframes pulse-opacity {
   0%,100% { opacity: 0.12; }
   50% { opacity: 0.4; }
@@ -154,6 +152,7 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   position: absolute; background: var(--neon-cyan); border-radius: 50%;
   opacity: 0; animation: p-float linear infinite;
   box-shadow: 0 0 6px var(--neon-cyan-glow);
+  will-change: transform, opacity;
 }
 @keyframes p-float {
   0%   { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); }
@@ -213,12 +212,12 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
 .crosshair {
   position: absolute; top: 50%; left: 50%;
   width: 60px; height: 60px;
-  transform: translate(-50%, -50%);
   z-index: 5; pointer-events: none;
   border: 1.5px solid var(--neon-cyan);
   border-radius: 50%;
   opacity: 0.15;
-  animation: crosshair-rotate 8s linear infinite, crosshair-pulse 3s ease-in-out infinite;
+  animation: crosshair-spin-pulse 8s linear infinite;
+  will-change: transform, opacity;
 }
 .crosshair::before, .crosshair::after {
   content: ''; position: absolute;
@@ -232,48 +231,54 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   left: 50%; top: -8px; height: calc(100% + 16px); width: 1px;
   transform: translateX(-50%);
 }
-@keyframes crosshair-rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes crosshair-pulse {
-  0%,100% { opacity: 0.1; transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(1); }
-  50% { opacity: 0.3; transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(1.2); }
+@keyframes crosshair-spin-pulse {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 0.12;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(180deg) scale(1.25);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg) scale(1);
+    opacity: 0.12;
+  }
 }
 
 /* ═══ RED SCANNING OVERLAY ═══ */
 .scan-red-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 6; pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(255,0,0,0.04) 0%, rgba(255,0,0,0.15) 100%);
-  border: 1.5px solid rgba(255,0,0,0.2);
-  box-shadow: inset 0 0 60px rgba(255,0,0,0.1), inset 0 0 150px rgba(255,0,0,0.05);
+  background: radial-gradient(ellipse at center, rgba(255,0,0,0.06) 0%, rgba(255,0,0,0.18) 100%);
+  border: 1.5px solid rgba(255,0,0,0.3);
+  box-shadow: inset 0 0 70px rgba(255,0,0,0.14), inset 0 0 180px rgba(255,0,0,0.08);
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
+  will-change: opacity;
 }
 .scan-red-overlay.active {
-  opacity: 1;
-  animation: red-pulse 2.2s ease-in-out infinite;
+  animation: red-pulse-opacity 2.2s ease-in-out infinite;
 }
-@keyframes red-pulse {
-  0%,100% {
-    background: radial-gradient(ellipse at center, rgba(255,0,0,0.03) 0%, rgba(255,0,0,0.1) 100%);
-    box-shadow: inset 0 0 40px rgba(255,0,0,0.08), inset 0 0 120px rgba(255,0,0,0.04);
-    border-color: rgba(255,0,0,0.15);
-  }
-  50% {
-    background: radial-gradient(ellipse at center, rgba(255,0,0,0.06) 0%, rgba(255,0,0,0.18) 100%);
-    box-shadow: inset 0 0 70px rgba(255,0,0,0.14), inset 0 0 180px rgba(255,0,0,0.08);
-    border-color: rgba(255,0,0,0.3);
-  }
+@keyframes red-pulse-opacity {
+  0%,100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
 
 /* ═══ LASER SWEEP ═══ */
 .viewport-laser {
-  position: absolute; left: 0; width: 100%; height: 2px;
+  position: absolute; left: 0; top: 0; width: 100%; height: 2px;
   background: linear-gradient(90deg, transparent, #ff2020 20%, #ff2020 80%, transparent);
   box-shadow: 0 0 8px rgba(255,0,0,0.8), 0 0 20px rgba(255,0,0,0.4);
   z-index: 7; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  will-change: transform;
 }
 .viewport-laser.scanning { opacity: 1; animation: sweep 2.2s infinite linear; }
-@keyframes sweep { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+@keyframes sweep {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(100vh); }
+  100% { transform: translateY(0); }
+}
 
 /* ═══ SUBTITLE — plain text, no box ═══ */
 .subtitle-plain {
@@ -448,7 +453,7 @@ body { background: var(--bg); overflow: hidden; height: 100vh; font-family: 'Raj
   border-left: 3px solid rgba(0,240,255,0.15);
   border-radius: 4px;
   margin-bottom: 6px;
-  transition: all 0.25s ease-in-out;
+  transition: background-color 0.25s ease-in-out, border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
 }
 .script-btn-container:hover {
   border-color: var(--neon-cyan);
