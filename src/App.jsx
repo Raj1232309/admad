@@ -50,8 +50,8 @@ export default function App() {
   const [spokenText, setSpokenText] = useState("");
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState("");
-  const [rate, setRate] = useState(0.92);
-  const [pitch, setPitch] = useState(0.35);
+  const [rate, setRate] = useState(0.9);
+  const [pitch, setPitch] = useState(1.0);
   const [volume, setVolume] = useState(1.0);
   const [customTarget, setCustomTarget] = useState("");
   const [customThoughts, setCustomThoughts] = useState("");
